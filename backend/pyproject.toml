@@ -20,6 +20,7 @@ dependencies = [
     "dotenv>=0.9.9",
     "ip-adapter>=0.1.0",
     "einops>=0.8.1",
+    "xformers>=0.0.33.post2",
 ]
 
 [tool.uv.sources]

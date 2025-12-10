@@ -1,3 +1,5 @@
+import base64
+from io import BytesIO
 import logging
 
 from PIL import Image
@@ -6,11 +8,15 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from api.ml_sd15 import generate_shrek_image, image_to_base64
+from api.ml_sd15 import  try_gennerate_shrek_image
 
 
 logger = logging.getLogger(__name__)
 
+def image_to_base64(image: Image.Image) -> str:
+    buffer = BytesIO()
+    image.save(buffer, format="PNG")
+    return base64.b64encode(buffer.getvalue()).decode("utf-8")
 
 class ShrekifyView(APIView):
     parser_classes = (MultiPartParser, FormParser)
@@ -31,8 +37,8 @@ class ShrekifyView(APIView):
 
         try:
             pil_image = Image.open(upload).convert("RGB")
-            output, used_fallback = generate_shrek_image(
-                pil_image, prompt=prompt, negative_prompt=negative_prompt
+            output, used_fallback = try_gennerate_shrek_image(
+                pil_image
             )
             encoded = image_to_base64(output)
             return Response(

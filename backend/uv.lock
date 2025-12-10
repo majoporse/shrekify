@@ -1021,6 +1021,7 @@ dependencies = [
     { name = "torchvision", version = "0.24.1", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "python_full_version < '3.15' and platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'" },
     { name = "torchvision", version = "0.24.1+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "python_full_version >= '3.15' or platform_machine != 'aarch64' or platform_python_implementation != 'CPython' or sys_platform != 'linux'" },
     { name = "transformers" },
+    { name = "xformers" },
 ]
 
 [package.metadata]
@@ -1041,6 +1042,7 @@ requires-dist = [
     { name = "torch", specifier = "==2.9.1", index = "https://download.pytorch.org/whl/cu128" },
     { name = "torchvision", specifier = "==0.24.1", index = "https://download.pytorch.org/whl/cu128" },
     { name = "transformers", specifier = ">=4.45.0" },
+    { name = "xformers", specifier = ">=0.0.33.post2" },
 ]
 
 [[package]]
@@ -1256,6 +1258,20 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/1c/43/554c2569b62f49350597348fc3ac70f786e3c32e7f19d266e19817812dd3/urllib3-2.6.0.tar.gz", hash = "sha256:cb9bcef5a4b345d5da5d145dc3e30834f58e8018828cbc724d30b4cb7d4d49f1", size = 432585, upload-time = "2025-12-05T15:08:47.885Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/56/1a/9ffe814d317c5224166b23e7c47f606d6e473712a2fad0f704ea9b99f246/urllib3-2.6.0-py3-none-any.whl", hash = "sha256:c90f7a39f716c572c4e3e58509581ebd83f9b59cced005b7db7ad2d22b0db99f", size = 131083, upload-time = "2025-12-05T15:08:45.983Z" },
+]
+
+[[package]]
+name = "xformers"
+version = "0.0.33.post2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+    { name = "torch" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/0b/69/403e963d35f1b0c52a1b3127e0bc4e94e7e50ecee8c6684a8abe40e6638e/xformers-0.0.33.post2.tar.gz", hash = "sha256:647ddf26578d2b8643230467ef1f0fbfef0bbe556a546bd27a70d4855d3433e1", size = 14783914, upload-time = "2025-12-04T18:52:42.572Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7d/c8/2957d8a8bf089a4e57f046867d4c9b31fc2e1d16013bc57cd7ae651a65b5/xformers-0.0.33.post2-cp39-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:9ea6032defa60395559b6a446c2ae945236707e98daabd88fea57cd08671c174", size = 122883631, upload-time = "2025-12-04T18:52:35.318Z" },
+    { url = "https://files.pythonhosted.org/packages/b3/72/057e48a3c2187f74202b3cca97e9f8a844342122909c93314fd641daa5d0/xformers-0.0.33.post2-cp39-abi3-win_amd64.whl", hash = "sha256:4a0a59a0c698a483f13ecad967dbbe71386827985e80cc373bec4cdf9aed59cd", size = 105088221, upload-time = "2025-12-04T18:52:39.699Z" },
 ]
 
 [[package]]
