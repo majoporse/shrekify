@@ -1,0 +1,15 @@
+{
+    "default_prompt": "Close-up cartoony portrait of Shrek, face filling the frame, expressive eyes and smile, clean outlines, vibrant colors, soft painterly shading, friendly mood, cinematic lighting, shallow depth of field, high detail, animation concept art",
+    "default_negative_prompt": "realistic human face, horror, gore, scary, off-model, distorted anatomy, extra limbs, multiple faces, nsfw, watermark, text",
+    "style_image_path": "./Ogre_Swamp.webp",
+    "ip_adapter_scales": {
+        "face_scale": 0.6,
+        "style_scale": 0.4
+    },
+    "generation_params": {
+        "height": 768,
+        "width": 768,
+        "num_inference_steps": 50,
+        "guidance_scale": 7.5
+    }
+}
