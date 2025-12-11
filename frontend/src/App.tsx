@@ -1,106 +1,99 @@
-import { FormEvent, useState } from "react";
-import { shrekifyImage, type ShrekifyResponse } from "./apiClient";
-import "./App.css";
+import { useState } from "react";
+import { useForm, FormProvider } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useShrekify } from "@/hooks/useShrekify";
+import { shrekifyFormSchema, type ShrekifyFormData } from "@/lib/schema";
+import { Header, Footer } from "@/components/Layout";
+import { ImageInputCard } from "@/components/ImageInputCard";
+import { ResultCard } from "@/components/ResultCard";
 
 function App() {
   const [file, setFile] = useState<File | null>(null);
-  const [prompt, setPrompt] = useState("");
-  const [negativePrompt, setNegativePrompt] = useState("");
-  const [result, setResult] = useState<string | null>(null);
-  const [usedFallback, setUsedFallback] = useState<boolean | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const form = useForm<ShrekifyFormData>({
+    resolver: zodResolver(shrekifyFormSchema),
+    defaultValues: {
+      prompt: "",
+      negativePrompt: "",
+    },
+  });
+
+  const shrekifyMutation = useShrekify();
+
+  const handleFileSelect = (
+    selectedFile: File | null,
+    filePreview?: string
+  ) => {
+    setFile(selectedFile);
+    setPreview(filePreview ?? null);
+    shrekifyMutation.reset();
+    setValidationError(null);
+  };
+
+  const clearImage = () => {
+    setFile(null);
+    setPreview(null);
+    shrekifyMutation.reset();
+    setValidationError(null);
+  };
+
+  const onSubmit = (data: ShrekifyFormData) => {
     if (!file) {
-      setError("Please choose an image first.");
+      setValidationError("Please select or capture an image first.");
       return;
     }
 
-    setLoading(true);
-    setError(null);
-    setResult(null);
-    setUsedFallback(null);
+    setValidationError(null);
+    shrekifyMutation.mutate({
+      file,
+      prompt: data.prompt?.trim() || undefined,
+      negativePrompt: data.negativePrompt?.trim() || undefined,
+    });
+  };
 
-    try {
-      const response: ShrekifyResponse = await shrekifyImage(
-        file,
-        prompt.trim() || undefined,
-        negativePrompt.trim() || undefined
-      );
-      setResult(response.image_base64);
-      setUsedFallback(response.used_fallback);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
-    } finally {
-      setLoading(false);
+  const downloadResult = () => {
+    if (shrekifyMutation.data?.image_base64) {
+      const link = document.createElement("a");
+      link.href = `data:image/png;base64,${shrekifyMutation.data.image_base64}`;
+      link.download = "shrekified.png";
+      link.click();
     }
   };
 
+  const error = validationError || shrekifyMutation.error?.message || null;
+
   return (
-    <div className="app">
-      <header className="app__header">
-        <h1>Shrekify</h1>
-        <p>Upload an image and let the backend ogre-fy it.</p>
-      </header>
+    <FormProvider {...form}>
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-emerald-950 dark:via-green-950 dark:to-teal-950">
+        <div className="container mx-auto px-4 py-8 max-w-4xl">
+          <Header />
 
-      <form className="card" onSubmit={handleSubmit}>
-        <label className="field">
-          <span>Image file</span>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-            required
-          />
-        </label>
+          <div className="grid gap-6 lg:grid-cols-2">
+            <ImageInputCard
+              file={file}
+              preview={preview}
+              loading={shrekifyMutation.isPending}
+              error={error}
+              onFileSelect={handleFileSelect}
+              onClearImage={clearImage}
+              onSubmit={form.handleSubmit(onSubmit)}
+              onError={setValidationError}
+            />
 
-        <label className="field">
-          <span>Prompt (optional)</span>
-          <input
-            type="text"
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Describe the scene or style"
-          />
-        </label>
-
-        <label className="field">
-          <span>Negative prompt (optional)</span>
-          <input
-            type="text"
-            value={negativePrompt}
-            onChange={(e) => setNegativePrompt(e.target.value)}
-            placeholder="What to avoid in the image"
-          />
-        </label>
-
-        <button type="submit" disabled={loading}>
-          {loading ? "Processing..." : "Shrekify"}
-        </button>
-      </form>
-
-      {error && <div className="alert alert--error">{error}</div>}
-
-      {result && (
-        <div className="result">
-          <div className="result__meta">
-            <h2>Result</h2>
-            {usedFallback !== null && (
-              <span className="badge">
-                {usedFallback ? "Fallback filter" : "Diffusion model"}
-              </span>
-            )}
+            <ResultCard
+              preview={preview}
+              result={shrekifyMutation.data?.image_base64 ?? null}
+              usedFallback={shrekifyMutation.data?.used_fallback ?? null}
+              onDownload={downloadResult}
+            />
           </div>
-          <img
-            src={`data:image/png;base64,${result}`}
-            alt="Shrekified output"
-            className="result__image"
-          />
+
+          <Footer />
         </div>
-      )}
-    </div>
+      </div>
+    </FormProvider>
   );
 }
 

@@ -1,0 +1,14 @@
+{
+    "height": 768,
+    "width": 768,
+    "num_inference_steps": 50,
+    "guidance_scale": 9.0,
+    "ip_adapter_scales": {
+        "face_scale": 0.5,
+        "style_scale": 0.5
+    },
+    "controlnet_conditioning_scale": [
+        0.7,
+        0.5
+    ]
+}

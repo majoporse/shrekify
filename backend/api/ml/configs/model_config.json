@@ -1,0 +1,33 @@
+{
+    "model_id": "runwayml/stable-diffusion-v1-5",
+    "ip_adapter": {
+        "repo": "h94/IP-Adapter",
+        "subfolder": "models",
+        "weight_names": [
+            "ip-adapter-plus-face_sd15.safetensors",
+            "ip-adapter_sd15.safetensors"
+        ]
+    },
+    "controlnet": {
+        "enabled": true,
+        "types": [
+            "openpose"
+        ],
+        "models": {
+            "canny": "lllyasviel/control_v11p_sd15_canny",
+            "softedge": "lllyasviel/control_v11p_sd15_softedge",
+            "lineart": "lllyasviel/control_v11p_sd15_lineart",
+            "depth": "lllyasviel/control_v11f1p_sd15_depth",
+            "openpose": "lllyasviel/control_v11p_sd15_openpose"
+        },
+        "canny_low_threshold": 100,
+        "canny_high_threshold": 200,
+        "softedge_low_threshold": 100,
+        "softedge_high_threshold": 200,
+        "controlnet_conditioning_scale": 0.5
+    },
+    "textual_inversion_paths": [
+        "/home/user/shrekify/backend/textual_inversion_output"
+    ],
+    "enable_xformers": true
+}
