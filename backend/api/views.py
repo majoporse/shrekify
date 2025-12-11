@@ -8,7 +8,7 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from api.ml_sd15 import  try_gennerate_shrek_image
+from api.ml.ml_sd15 import try_generate_shrek_image
 
 
 logger = logging.getLogger(__name__)
@@ -22,12 +22,8 @@ class ShrekifyView(APIView):
     parser_classes = (MultiPartParser, FormParser)
 
     def post(self, request, *args, **kwargs):
-        """
-        Accepts an uploaded image and returns a Shrekified result.
-        """
+
         upload = request.FILES.get("image")
-        prompt = request.data.get("prompt")
-        negative_prompt = request.data.get("negative_prompt")
 
         if upload is None:
             return Response(
@@ -37,7 +33,7 @@ class ShrekifyView(APIView):
 
         try:
             pil_image = Image.open(upload).convert("RGB")
-            output, used_fallback = try_gennerate_shrek_image(
+            output, used_fallback = try_generate_shrek_image(
                 pil_image
             )
             encoded = image_to_base64(output)
