@@ -1,25 +1,13 @@
 import { useState } from "react";
-import { useForm, FormProvider } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useShrekify } from "@/hooks/useShrekify";
-import { shrekifyFormSchema, type ShrekifyFormData } from "@/lib/schema";
 import { PageLayout } from "@/components/Layout";
 import { ImageInputCard } from "@/components/ImageInputCard";
 import { ResultCard } from "@/components/ResultCard";
-import { Testimonials } from "@/components/Testimonials";
 
-function App() {
+export default function EnhancePage() {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
-
-  const form = useForm<ShrekifyFormData>({
-    resolver: zodResolver(shrekifyFormSchema),
-    defaultValues: {
-      prompt: "",
-      negativePrompt: "",
-    },
-  });
 
   const shrekifyMutation = useShrekify();
 
@@ -40,7 +28,7 @@ function App() {
     setValidationError(null);
   };
 
-  const onSubmit = (data: ShrekifyFormData) => {
+  const onSubmit = () => {
     if (!file) {
       setValidationError("Please select or capture an image first.");
       return;
@@ -49,8 +37,8 @@ function App() {
     setValidationError(null);
     shrekifyMutation.mutate({
       file,
-      prompt: data.prompt?.trim() || undefined,
-      negativePrompt: data.negativePrompt?.trim() || undefined,
+      prompt: undefined,
+      negativePrompt: undefined,
     });
   };
 
@@ -67,32 +55,27 @@ function App() {
   const error = validationError || shrekifyMutation.error?.message || null;
 
   return (
-    <FormProvider {...form}>
-      <PageLayout>
-        <div className="grid gap-6 lg:grid-cols-2">
-          <ImageInputCard
-            file={file}
-            preview={preview}
-            loading={shrekifyMutation.isPending}
-            error={error}
-            onFileSelect={handleFileSelect}
-            onClearImage={clearImage}
-            onSubmit={form.handleSubmit(onSubmit)}
-            onError={setValidationError}
-          />
+    <PageLayout>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <ImageInputCard
+          file={file}
+          preview={preview}
+          loading={shrekifyMutation.isPending}
+          error={error}
+          onFileSelect={handleFileSelect}
+          onClearImage={clearImage}
+          onSubmit={onSubmit}
+          onError={setValidationError}
+        />
 
-          <ResultCard
-            preview={preview}
-            images={shrekifyMutation.data?.images ?? null}
-            usedFallback={shrekifyMutation.data?.used_fallback ?? null}
-            onDownload={downloadResult}
-          />
-        </div>
-
-        <Testimonials />
-      </PageLayout>
-    </FormProvider>
+        <ResultCard
+          preview={preview}
+          images={shrekifyMutation.data?.images ?? null}
+          usedFallback={shrekifyMutation.data?.used_fallback ?? null}
+          onDownload={downloadResult}
+          isLoading={shrekifyMutation.isPending}
+        />
+      </div>
+    </PageLayout>
   );
 }
-
-export default App;

@@ -24,7 +24,7 @@ export default function GalleryDetailPage() {
     if (entry) {
       const link = document.createElement("a");
       link.href = `data:image/jpeg;base64,${entry.main_image}`;
-      link.download = "shrekified.jpg";
+      link.download = "glowup-transformation.jpg";
       link.click();
     }
   };
@@ -33,11 +33,11 @@ export default function GalleryDetailPage() {
     <PageLayout>
       <div className="space-y-6">
         <Link
-          to="/gallery"
+          to="/transformations"
           className="inline-flex items-center gap-2 text-emerald-600 hover:text-emerald-700 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back to Gallery
+          Back to Transformations
         </Link>
 
         {isLoading && (
@@ -57,26 +57,28 @@ export default function GalleryDetailPage() {
         {entry && (
           <div className="space-y-6">
             {/* Main comparison */}
-            <Card>
+            <Card className="border-emerald-100">
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-emerald-700">Result</CardTitle>
+                <CardTitle className="text-emerald-700 flex items-center gap-2">
+                  <span>✨</span> Transformation
+                </CardTitle>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={downloadImage}
-                  className="gap-2"
+                  className="gap-2 border-emerald-200"
                 >
                   <Download className="w-4 h-4" />
                   Download
                 </Button>
               </CardHeader>
               <CardContent>
-                <div className="rounded-lg overflow-hidden">
+                <div className="rounded-xl overflow-hidden border border-emerald-200">
                   <ImageCompareSlider
                     beforeImage={`data:image/jpeg;base64,${entry.original_image}`}
                     afterImage={`data:image/jpeg;base64,${entry.main_image}`}
-                    beforeLabel="Original"
-                    afterLabel="Shrekified"
+                    beforeLabel="Before"
+                    afterLabel="Glowed Up ✨"
                   />
                 </div>
                 <p className="text-sm text-muted-foreground mt-2 text-center">
@@ -87,10 +89,10 @@ export default function GalleryDetailPage() {
 
             {/* Control images */}
             {entry.control_images.length > 0 && (
-              <Card>
+              <Card className="border-emerald-100">
                 <CardHeader>
                   <CardTitle className="text-emerald-700">
-                    Control Images
+                    Enhancement Process
                   </CardTitle>
                 </CardHeader>
                 <CardContent>

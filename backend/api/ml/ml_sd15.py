@@ -45,19 +45,19 @@ def generate_shrek_image(input_image: Image.Image) -> GenerationResult:
 
     logger.debug("Starting Stable Diffusion v1.5 image generation...")
 
-    style_image = load_style_image(style_image_path) if style_image_path else None
+    style_image = load_style_image(style_image_path)
 
     adapter_scales = gen_config.get("ip_adapter_scales", {})
     face_scale = adapter_scales.get("face_scale", 0.6)
     style_scale = adapter_scales.get("style_scale", 0.4)
 
-    pipeline.set_ip_adapter_scale([face_scale])
+    pipeline.set_ip_adapter_scale([face_scale, style_scale])
     logger.debug("Set IP-Adapter scales: face=%s, style=%s", face_scale, style_scale)
 
     face_image = input_image.resize((width, height), Image.LANCZOS)
 
     gen_kwargs = {
-        "ip_adapter_image": [face_image],
+        "ip_adapter_image": [face_image, style_image],
         "prompt": prompt_text,
         "negative_prompt": negative,
         "height": height,

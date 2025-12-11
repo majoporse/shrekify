@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
 interface ImageCompareSliderProps {
@@ -18,7 +18,28 @@ export function ImageCompareSlider({
 }: ImageCompareSliderProps) {
   const [sliderPosition, setSliderPosition] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
+  const [containerWidth, setContainerWidth] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Update container width on mount and resize
+  useEffect(() => {
+    const updateWidth = () => {
+      if (containerRef.current) {
+        setContainerWidth(containerRef.current.offsetWidth);
+      }
+    };
+
+    updateWidth();
+
+    // Also update when images load
+    const timer = setTimeout(updateWidth, 100);
+
+    window.addEventListener("resize", updateWidth);
+    return () => {
+      window.removeEventListener("resize", updateWidth);
+      clearTimeout(timer);
+    };
+  }, [beforeImage, afterImage]);
 
   const updateSliderPosition = useCallback((clientX: number) => {
     if (!containerRef.current) return;
@@ -107,12 +128,8 @@ export function ImageCompareSlider({
           alt={beforeLabel}
           className="h-full object-cover bg-muted"
           style={{
-            width: containerRef.current
-              ? `${containerRef.current.offsetWidth}px`
-              : "100vw",
-            minWidth: containerRef.current
-              ? `${containerRef.current.offsetWidth}px`
-              : "100vw",
+            width: containerWidth ? `${containerWidth}px` : "100vw",
+            minWidth: containerWidth ? `${containerWidth}px` : "100vw",
           }}
           draggable={false}
         />

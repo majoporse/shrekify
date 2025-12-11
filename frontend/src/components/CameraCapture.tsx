@@ -18,6 +18,7 @@ export function CameraCapture({
   const [cameraActive, setCameraActive] = useState(false);
   const [capturedPreview, setCapturedPreview] = useState<string | null>(null);
   const [capturedFile, setCapturedFile] = useState<File | null>(null);
+  const [countdown, setCountdown] = useState<number | null>(null);
 
   // Use external preview if available (after cropping), otherwise use internal
   const displayPreview = externalPreview || capturedPreview;
@@ -103,6 +104,20 @@ export function CameraCapture({
     }
   };
 
+  const startCountdown = () => {
+    setCountdown(5);
+    const interval = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev === null || prev <= 1) {
+          clearInterval(interval);
+          capturePhoto();
+          return null;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
   const retake = () => {
     setCapturedPreview(null);
     setCapturedFile(null);
@@ -132,6 +147,16 @@ export function CameraCapture({
               className="w-full h-full object-cover"
             />
           )}
+
+          {/* Countdown overlay */}
+          {countdown !== null && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+              <div className="text-8xl font-bold text-white animate-pulse drop-shadow-lg">
+                {countdown}
+              </div>
+            </div>
+          )}
+
           <div className="absolute bottom-3 left-1/2 -translate-x-1/2">
             {displayPreview ? (
               <Button
@@ -143,9 +168,13 @@ export function CameraCapture({
                 <RotateCcw className="w-4 h-4 mr-2" />
                 Retake
               </Button>
+            ) : countdown !== null ? (
+              <div className="text-white text-sm font-medium bg-black/50 px-3 py-1 rounded-full">
+                Get ready...
+              </div>
             ) : (
               <Button
-                onClick={capturePhoto}
+                onClick={startCountdown}
                 size="icon"
                 className="rounded-md w-9 h-9 bg-white hover:bg-gray-100 shadow-lg"
               >
@@ -158,6 +187,7 @@ export function CameraCapture({
             size="icon"
             className="absolute top-2 right-2"
             onClick={stopCamera}
+            disabled={countdown !== null}
           >
             <X className="w-4 h-4" />
           </Button>

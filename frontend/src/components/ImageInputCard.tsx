@@ -20,7 +20,6 @@ import {
 import { FileUploadDropzone } from "./FileUploadDropzone";
 import { CameraCapture } from "./CameraCapture";
 import { ImagePreview } from "./ImagePreview";
-import { PromptInputs } from "./PromptInputs";
 
 const TARGET_ASPECT_RATIO = 4 / 3;
 
@@ -156,11 +155,11 @@ export function ImageInputCard({
     <Card className="shadow-lg border-emerald-100 dark:border-emerald-900">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <ImageIcon className="w-5 h-5" />
-          Select Image
+          <ImageIcon className="w-5 h-5 text-emerald-500" />
+          Start Your Glow Up
         </CardTitle>
         <CardDescription>
-          Upload a photo or take one with your camera
+          Upload your selfie for instant AI-powered enhancement
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -211,24 +210,20 @@ export function ImageInputCard({
           </TabsContent>
         </Tabs>
 
-        {/* Prompts */}
-        <PromptInputs />
-
         {/* Submit Button */}
         <Button
           onClick={onSubmit}
           disabled={loading || !file}
-          className="w-full h-12 text-lg bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600"
+          className="w-full h-12 text-lg bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 shadow-lg shadow-emerald-500/25 rounded-full font-semibold"
         >
           {loading ? (
             <>
               <RefreshCw className="w-5 h-5 animate-spin" />
-              Processing...
+              Enhancing your beauty...
             </>
           ) : (
             <>
-              <Sparkles className="w-5 h-5" />
-              Shrekify!
+              ✨ Enhance Now
             </>
           )}
         </Button>

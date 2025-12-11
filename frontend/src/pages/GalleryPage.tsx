@@ -18,9 +18,14 @@ export default function GalleryPage() {
   return (
     <PageLayout>
       <div className="space-y-6">
-        <h2 className="text-2xl font-semibold text-center text-emerald-800 dark:text-emerald-200">
-          Community Gallery
-        </h2>
+        <div className="text-center">
+          <h2 className="text-2xl font-semibold text-emerald-800 dark:text-emerald-200">
+            ✨ Transformation Gallery
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Real results from our community
+          </p>
+        </div>
 
         {isLoading && (
           <div className="flex justify-center py-12">
@@ -37,12 +42,12 @@ export default function GalleryPage() {
         )}
 
         {entries && entries.length === 0 && (
-          <Card>
+          <Card className="border-emerald-200">
             <CardContent className="py-12 text-center text-muted-foreground">
-              <ImageOff className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>No images in the gallery yet.</p>
+              <ImageOff className="w-12 h-12 mx-auto mb-4 opacity-50 text-emerald-400" />
+              <p className="font-medium">No transformations yet</p>
               <p className="text-sm mt-2">
-                Be the first to share your Shrekified creation!
+                Be the first to share your glow up! ✨
               </p>
             </CardContent>
           </Card>
@@ -51,12 +56,12 @@ export default function GalleryPage() {
         {entries && entries.length > 0 && (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {entries.map((entry) => (
-              <Link key={entry.id} to={`/gallery/${entry.id}`}>
-                <Card className="overflow-hidden hover:ring-2 hover:ring-emerald-500 transition-all cursor-pointer">
+              <Link key={entry.id} to={`/transformations/${entry.id}`}>
+                <Card className="overflow-hidden hover:ring-2 hover:ring-emerald-400 hover:shadow-lg hover:shadow-emerald-500/20 transition-all cursor-pointer border-emerald-100">
                   <div className="aspect-[4/3] relative">
                     <img
                       src={`data:image/jpeg;base64,${entry.main_image}`}
-                      alt="Shrekified result"
+                      alt="Glow up transformation"
                       className="w-full h-full object-cover"
                     />
                   </div>

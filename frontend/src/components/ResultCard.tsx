@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Card,
@@ -18,12 +18,14 @@ import {
   Loader2,
 } from "lucide-react";
 import { createGalleryEntry, type ImageResult } from "@/apiClient";
+import { BeautyFilterLoading } from "./BeautyFilterLoading";
 
 interface ResultCardProps {
   preview: string | null;
   images: ImageResult[] | null;
   usedFallback: boolean | null;
   onDownload: () => void;
+  isLoading?: boolean;
 }
 
 export function ResultCard({
@@ -31,6 +33,7 @@ export function ResultCard({
   images,
   usedFallback,
   onDownload,
+  isLoading = false,
 }: ResultCardProps) {
   const [shared, setShared] = useState(false);
   const queryClient = useQueryClient();
@@ -70,23 +73,37 @@ export function ResultCard({
     <Card className="shadow-lg border-emerald-100 dark:border-emerald-900">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Sparkles className="w-5 h-5" />
-          Result
+          <Sparkles className="w-5 h-5 text-emerald-500" />
+          Your Glow Up
         </CardTitle>
-        <CardDescription>
-          Your transformed image will appear here
-        </CardDescription>
+        <CardDescription>See your radiant transformation</CardDescription>
       </CardHeader>
       <CardContent>
         {mainImage && preview ? (
           <div className="space-y-4">
+            {/* Status badge - at top, full width */}
+            {usedFallback !== null && (
+              <div
+                className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm w-full ${
+                  usedFallback
+                    ? "bg-amber-50 text-amber-600 border border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800"
+                    : "bg-emerald-50 text-emerald-600 border border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800"
+                }`}
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                {usedFallback
+                  ? "Quick filter applied"
+                  : "AI enhancement complete"}
+              </div>
+            )}
+
             {/* Before/After Slider */}
             <ImageCompareSlider
               beforeImage={preview}
               afterImage={`data:image/jpeg;base64,${mainImage.image_base64}`}
-              beforeLabel="Original"
-              afterLabel="Shrekified"
-              className="border"
+              beforeLabel="Before"
+              afterLabel="Glowed Up ✨"
+              className="border border-emerald-200 rounded-xl"
             />
             <p className="text-xs text-center text-muted-foreground">
               Drag the slider to compare
@@ -96,7 +113,7 @@ export function ResultCard({
             {controlImages.length > 0 && (
               <div className="space-y-2">
                 <p className="text-sm font-medium text-muted-foreground">
-                  Control Images
+                  Enhancement Process
                 </p>
                 <div className="flex gap-3 overflow-x-auto pb-2 -mx-2 px-2">
                   {controlImages.map((img, idx) => (
@@ -115,22 +132,6 @@ export function ResultCard({
               </div>
             )}
 
-            {/* Status badge */}
-            {usedFallback !== null && (
-              <div
-                className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${
-                  usedFallback
-                    ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                    : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                }`}
-              >
-                <CheckCircle2 className="w-4 h-4" />
-                {usedFallback
-                  ? "Fallback filter applied"
-                  : "AI transformation complete"}
-              </div>
-            )}
-
             {/* Download and Share buttons */}
             <div className="flex gap-2">
               <Button onClick={onDownload} variant="outline" className="flex-1">
@@ -139,8 +140,11 @@ export function ResultCard({
               </Button>
               <Button
                 onClick={handleShare}
-                variant={shared ? "secondary" : "default"}
-                className="flex-1"
+                className={`flex-1 ${
+                  shared
+                    ? "bg-gray-200 text-gray-600"
+                    : "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-lg shadow-emerald-500/40 hover:shadow-emerald-500/60 transition-all duration-200"
+                }`}
                 disabled={shareMutation.isPending || shared}
               >
                 {shareMutation.isPending ? (
@@ -150,16 +154,18 @@ export function ResultCard({
                 ) : (
                   <Share2 className="w-4 h-4" />
                 )}
-                {shared ? "Shared!" : "Share to Gallery"}
+                {shared ? "Shared!" : "✨ Share to Gallery"}
               </Button>
             </div>
           </div>
+        ) : isLoading && preview ? (
+          <BeautyFilterLoading preview={preview} />
         ) : (
-          <div className="flex flex-col items-center justify-center h-64 text-muted-foreground border-2 border-dashed rounded-xl">
-            <ImageIcon className="w-16 h-16 mb-4 opacity-30" />
-            <p className="text-sm">No result yet</p>
+          <div className="flex flex-col items-center justify-center h-64 text-muted-foreground border-2 border-dashed border-emerald-200 rounded-xl bg-linear-to-br from-emerald-50/50 to-teal-50/50">
+            <Sparkles className="w-16 h-16 mb-4 opacity-30 text-emerald-400" />
+            <p className="text-sm font-medium">Your glow up awaits</p>
             <p className="text-xs opacity-70">
-              Upload an image and click Shrekify
+              Upload a selfie to reveal your radiance
             </p>
           </div>
         )}
