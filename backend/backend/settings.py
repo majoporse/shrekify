@@ -160,3 +160,16 @@ LOGGING = {
         # },
     },
 }
+
+
+# Watch model config for auto-reload in development
+def _watch_config_files(sender, **kwargs):
+    config_file = BASE_DIR / "api" / "ml" / "configs" / "model_config.json"
+    sender.extra_files.add(config_file)
+
+
+try:
+    from django.utils.autoreload import autoreload_started
+    autoreload_started.connect(_watch_config_files)
+except ImportError:
+    pass

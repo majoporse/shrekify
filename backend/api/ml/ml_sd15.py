@@ -51,13 +51,13 @@ def generate_shrek_image(input_image: Image.Image) -> GenerationResult:
     face_scale = adapter_scales.get("face_scale", 0.6)
     style_scale = adapter_scales.get("style_scale", 0.4)
 
-    pipeline.set_ip_adapter_scale([face_scale, style_scale])
+    pipeline.set_ip_adapter_scale([face_scale])
     logger.debug("Set IP-Adapter scales: face=%s, style=%s", face_scale, style_scale)
 
     face_image = input_image.resize((width, height), Image.LANCZOS)
 
     gen_kwargs = {
-        "ip_adapter_image": [face_image, style_image],
+        "ip_adapter_image": [face_image],
         "prompt": prompt_text,
         "negative_prompt": negative,
         "height": height,
@@ -72,16 +72,17 @@ def generate_shrek_image(input_image: Image.Image) -> GenerationResult:
     control_images_with_desc: list[tuple[Image.Image, str]] = []
 
     if controlnets and controlnet_config.get("enabled", False):
-        controlnet_types = controlnet_config.get("types", [])
+        controlnet_types_config = controlnet_config.get("types", {})
+        controlnet_types = list(controlnet_types_config.keys())
         
         control_images_with_desc = process_control_images(face_image, controlnet_types)
         
         if control_images_with_desc:
             control_images = [img for img, _ in control_images_with_desc]
-            controlnet_scales = gen_config.get("controlnet_conditioning_scale", 0.8)
-            
-            if isinstance(controlnet_scales, (int, float)):
-                controlnet_scales = [controlnet_scales] * len(control_images)
+            controlnet_scales = [
+                controlnet_types_config.get(cn_type, {}).get("scale", 0.5)
+                for cn_type in controlnet_types
+            ]
             
             gen_kwargs["image"] = control_images
             gen_kwargs["controlnet_conditioning_scale"] = controlnet_scales

@@ -1,5 +1,5 @@
 {
-    "default_prompt": "<shrek> ogre face, green ogre skin, Shrek the ogre, headshot portrait, ogre ears, ogre nose, cartoon ogre, Dreamworks Shrek movie style, 3D animated character, swamp background, friendly ogre expression",
+    "default_prompt": "portrait of a friendly green ogre in a swamp, vibrant colors, cartoon style, whimsical, fantasy, detailed background, bright lighting, cheerful expression, lush greenery, magical atmosphere, Shrek, Dreamworks style",
     "default_negative_prompt": "human, human face, human skin, realistic, photorealistic, person, real person, flesh tone, pink skin, pale skin, tan skin, brown skin, human ears, human nose, horror, gore, scary, distorted anatomy, extra limbs, multiple faces, nsfw, watermark, text",
     "style_image_path": "./Ogre_Swamp.webp"
 }

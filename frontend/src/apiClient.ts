@@ -8,6 +8,22 @@ export interface ShrekifyResponse {
     used_fallback: boolean;
 }
 
+export interface GalleryEntryPreview {
+    id: string;
+    created_at: string;
+    main_image: string;
+    original_image: string;
+    control_images_count: number;
+}
+
+export interface GalleryEntryDetail {
+    id: string;
+    created_at: string;
+    main_image: string;
+    original_image: string;
+    control_images: ImageResult[];
+}
+
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
 
 export async function shrekifyImage(
@@ -42,5 +58,49 @@ export async function shrekifyImage(
     }
 
     return payload as ShrekifyResponse;
+}
+
+export async function getGalleryList(): Promise<GalleryEntryPreview[]> {
+    const response = await fetch(`${BASE_URL}/gallery/`);
+
+    if (!response.ok) {
+        throw new Error("Failed to fetch gallery");
+    }
+
+    return response.json();
+}
+
+export async function getGalleryEntry(id: string): Promise<GalleryEntryDetail> {
+    const response = await fetch(`${BASE_URL}/gallery/${id}/`);
+
+    if (!response.ok) {
+        throw new Error("Gallery entry not found");
+    }
+
+    return response.json();
+}
+
+export async function createGalleryEntry(
+    mainImage: string,
+    originalImage: string,
+    controlImages: ImageResult[]
+): Promise<{ id: string; created_at: string }> {
+    const response = await fetch(`${BASE_URL}/gallery/`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            main_image: mainImage,
+            original_image: originalImage,
+            control_images: controlImages,
+        }),
+    });
+
+    if (!response.ok) {
+        throw new Error("Failed to save to gallery");
+    }
+
+    return response.json();
 }
 

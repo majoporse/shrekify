@@ -22,6 +22,80 @@ import { CameraCapture } from "./CameraCapture";
 import { ImagePreview } from "./ImagePreview";
 import { PromptInputs } from "./PromptInputs";
 
+const TARGET_ASPECT_RATIO = 4 / 3;
+
+function cropImageToAspectRatio(
+  imageSrc: string,
+  aspectRatio: number
+): Promise<{ file: File; preview: string }> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        reject(new Error("Failed to get canvas context"));
+        return;
+      }
+
+      const srcWidth = img.width;
+      const srcHeight = img.height;
+      const srcAspect = srcWidth / srcHeight;
+
+      let cropWidth: number;
+      let cropHeight: number;
+      let offsetX: number;
+      let offsetY: number;
+
+      if (srcAspect > aspectRatio) {
+        cropHeight = srcHeight;
+        cropWidth = srcHeight * aspectRatio;
+        offsetX = (srcWidth - cropWidth) / 2;
+        offsetY = 0;
+      } else {
+        cropWidth = srcWidth;
+        cropHeight = srcWidth / aspectRatio;
+        offsetX = 0;
+        offsetY = (srcHeight - cropHeight) / 2;
+      }
+
+      canvas.width = cropWidth;
+      canvas.height = cropHeight;
+
+      ctx.drawImage(
+        img,
+        offsetX,
+        offsetY,
+        cropWidth,
+        cropHeight,
+        0,
+        0,
+        cropWidth,
+        cropHeight
+      );
+
+      const preview = canvas.toDataURL("image/jpeg", 0.9);
+
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            reject(new Error("Failed to create blob"));
+            return;
+          }
+          const file = new File([blob], "cropped-image.jpg", {
+            type: "image/jpeg",
+          });
+          resolve({ file, preview });
+        },
+        "image/jpeg",
+        0.9
+      );
+    };
+    img.onerror = () => reject(new Error("Failed to load image"));
+    img.src = imageSrc;
+  });
+}
+
 interface ImageInputCardProps {
   file: File | null;
   preview: string | null;
@@ -45,18 +119,37 @@ export function ImageInputCard({
 }: ImageInputCardProps) {
   const [activeTab, setActiveTab] = useState("upload");
 
-  const handleFileSelect = (selectedFile: File | null) => {
+  const handleFileSelect = async (selectedFile: File | null) => {
     if (selectedFile) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        onFileSelect(selectedFile, reader.result as string);
+      reader.onloadend = async () => {
+        try {
+          const { file, preview } = await cropImageToAspectRatio(
+            reader.result as string,
+            TARGET_ASPECT_RATIO
+          );
+          onFileSelect(file, preview);
+        } catch {
+          onError("Failed to process image");
+        }
       };
       reader.readAsDataURL(selectedFile);
     }
   };
 
-  const handleCameraCapture = (capturedFile: File, capturedPreview: string) => {
-    onFileSelect(capturedFile, capturedPreview);
+  const handleCameraCapture = async (
+    _capturedFile: File,
+    capturedPreview: string
+  ) => {
+    try {
+      const { file, preview } = await cropImageToAspectRatio(
+        capturedPreview,
+        TARGET_ASPECT_RATIO
+      );
+      onFileSelect(file, preview);
+    } catch {
+      onError("Failed to process captured image");
+    }
   };
 
   return (
@@ -101,16 +194,22 @@ export function ImageInputCard({
           />
 
           <TabsContent value="upload" className="mt-4">
-            <FileUploadDropzone onFileSelect={handleFileSelect} />
+            <FileUploadDropzone
+              onFileSelect={handleFileSelect}
+              preview={preview}
+              onClear={onClearImage}
+            />
           </TabsContent>
 
           <TabsContent value="camera" className="mt-4">
-            <CameraCapture onCapture={handleCameraCapture} onError={onError} />
+            <CameraCapture
+              onCapture={handleCameraCapture}
+              onError={onError}
+              preview={preview}
+              onClear={onClearImage}
+            />
           </TabsContent>
         </Tabs>
-
-        {/* Preview */}
-        {preview && <ImagePreview src={preview} onClear={onClearImage} />}
 
         {/* Prompts */}
         <PromptInputs />

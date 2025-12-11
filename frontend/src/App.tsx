@@ -3,7 +3,7 @@ import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useShrekify } from "@/hooks/useShrekify";
 import { shrekifyFormSchema, type ShrekifyFormData } from "@/lib/schema";
-import { Header, Footer } from "@/components/Layout";
+import { PageLayout } from "@/components/Layout";
 import { ImageInputCard } from "@/components/ImageInputCard";
 import { ResultCard } from "@/components/ResultCard";
 
@@ -67,33 +67,27 @@ function App() {
 
   return (
     <FormProvider {...form}>
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-emerald-950 dark:via-green-950 dark:to-teal-950">
-        <div className="container mx-auto px-4 py-8 max-w-4xl">
-          <Header />
+      <PageLayout>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <ImageInputCard
+            file={file}
+            preview={preview}
+            loading={shrekifyMutation.isPending}
+            error={error}
+            onFileSelect={handleFileSelect}
+            onClearImage={clearImage}
+            onSubmit={form.handleSubmit(onSubmit)}
+            onError={setValidationError}
+          />
 
-          <div className="grid gap-6 lg:grid-cols-2">
-            <ImageInputCard
-              file={file}
-              preview={preview}
-              loading={shrekifyMutation.isPending}
-              error={error}
-              onFileSelect={handleFileSelect}
-              onClearImage={clearImage}
-              onSubmit={form.handleSubmit(onSubmit)}
-              onError={setValidationError}
-            />
-
-            <ResultCard
-              preview={preview}
-              images={shrekifyMutation.data?.images ?? null}
-              usedFallback={shrekifyMutation.data?.used_fallback ?? null}
-              onDownload={downloadResult}
-            />
-          </div>
-
-          <Footer />
+          <ResultCard
+            preview={preview}
+            images={shrekifyMutation.data?.images ?? null}
+            usedFallback={shrekifyMutation.data?.used_fallback ?? null}
+            onDownload={downloadResult}
+          />
         </div>
-      </div>
+      </PageLayout>
     </FormProvider>
   );
 }

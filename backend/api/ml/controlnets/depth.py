@@ -13,7 +13,7 @@ def extract_depth(image: Image.Image) -> Image.Image:
 
     if _DEPTH_ESTIMATOR is None:
         logger.info("Loading depth estimator...")
-        _DEPTH_ESTIMATOR = pipeline("depth-estimation")
+        _DEPTH_ESTIMATOR = pipeline("depth-estimation", use_fast=True)
         logger.info("Depth estimator loaded.")
 
     depth = _DEPTH_ESTIMATOR(image)["depth"]

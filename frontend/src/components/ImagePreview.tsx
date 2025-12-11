@@ -8,11 +8,11 @@ interface ImagePreviewProps {
 
 export function ImagePreview({ src, onClear }: ImagePreviewProps) {
   return (
-    <div className="relative rounded-xl overflow-hidden border">
+    <div className="relative rounded-xl overflow-hidden border aspect-4/3">
       <img
         src={src}
         alt="Preview"
-        className="w-full h-auto max-h-64 object-contain bg-muted"
+        className="w-full h-full object-cover bg-muted"
       />
       <Button
         variant="destructive"

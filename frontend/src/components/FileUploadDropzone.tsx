@@ -1,12 +1,19 @@
 import { useRef } from "react";
 import { Input } from "@/components/ui/input";
-import { Upload } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Upload, X } from "lucide-react";
 
 interface FileUploadDropzoneProps {
   onFileSelect: (file: File | null) => void;
+  preview?: string | null;
+  onClear?: () => void;
 }
 
-export function FileUploadDropzone({ onFileSelect }: FileUploadDropzoneProps) {
+export function FileUploadDropzone({
+  onFileSelect,
+  preview,
+  onClear,
+}: FileUploadDropzoneProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -23,9 +30,29 @@ export function FileUploadDropzone({ onFileSelect }: FileUploadDropzoneProps) {
     }
   };
 
+  if (preview) {
+    return (
+      <div className="relative rounded-xl overflow-hidden aspect-4/3">
+        <img
+          src={preview}
+          alt="Preview"
+          className="w-full h-full object-cover bg-muted"
+        />
+        <Button
+          variant="destructive"
+          size="icon"
+          className="absolute top-2 right-2"
+          onClick={onClear}
+        >
+          <X className="w-4 h-4" />
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div
-      className="border-2 border-dashed border-muted-foreground/25 rounded-xl p-8 text-center hover:border-emerald-500/50 transition-colors cursor-pointer"
+      className="border-2 border-dashed border-muted-foreground/25 rounded-xl p-8 text-center hover:border-emerald-500/50 transition-colors cursor-pointer aspect-4/3 flex flex-col items-center justify-center"
       onClick={() => fileInputRef.current?.click()}
       onDragOver={handleDragOver}
       onDrop={handleDrop}

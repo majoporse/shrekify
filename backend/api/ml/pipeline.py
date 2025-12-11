@@ -5,7 +5,7 @@ import os
 from typing import TypeAlias, Union
 
 import torch
-from diffusers import ControlNetModel, StableDiffusionControlNetPipeline, StableDiffusionPipeline
+from diffusers import ControlNetModel, StableDiffusionControlNetPipeline, StableDiffusionPipeline, LCMScheduler
 from huggingface_hub import login as hf_login
 
 from .config import load_model_config
@@ -76,6 +76,28 @@ def try_add_textual_inversion(pipeline: PipelineType, ti_paths: list[str]) -> No
             logger.warning("Textual Inversion load failed for %s: %s", ti_path, ti_exc)
 
 
+def try_add_lcm_lora(pipeline: PipelineType, lcm_config: dict) -> None:
+    """Load LCM-LoRA for faster inference (4-8 steps)."""
+    if not lcm_config.get("enabled", False):
+        logger.debug("LCM-LoRA not enabled.")
+        return
+
+    try:
+        lora_id = lcm_config.get("lora_id", "latent-consistency/lcm-lora-sdv1-5")
+        logger.debug("Loading LCM-LoRA from %s...", lora_id)
+        
+        pipeline.load_lora_weights(lora_id)
+        pipeline.fuse_lora()
+        
+        pipeline.scheduler = LCMScheduler.from_config(pipeline.scheduler.config)
+        
+        pipeline.lcm_enabled = True
+        logger.info("LCM-LoRA loaded and scheduler set to LCMScheduler.")
+    except Exception as lcm_exc:
+        logger.warning("LCM-LoRA load failed: %s", lcm_exc)
+        pipeline.lcm_enabled = False
+
+
 def load_pipeline() -> PipelineType | None:
 
     global _PIPELINE
@@ -120,7 +142,13 @@ def load_pipeline() -> PipelineType | None:
             pipeline,
             model_config.get("textual_inversion_paths", []),
         )
-        pipeline.to(device)
+        try_add_lcm_lora(pipeline, model_config.get("lcm_lora", {}))
+
+        if model_config.get("enable_cpu_offload", False):
+            logger.info("Enabling model CPU offload for memory efficiency...")
+            pipeline.enable_model_cpu_offload()
+        else:
+            pipeline.to(device)
 
         _PIPELINE = pipeline
     except Exception as exc:

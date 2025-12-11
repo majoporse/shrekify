@@ -78,7 +78,7 @@ export function ImageCompareSlider({
     <div
       ref={containerRef}
       className={cn(
-        "relative w-full aspect-square overflow-hidden rounded-xl cursor-ew-resize select-none",
+        "relative w-full aspect-4/3 overflow-hidden rounded-xl cursor-ew-resize select-none",
         className
       )}
       onMouseDown={handleMouseDown}
@@ -93,7 +93,7 @@ export function ImageCompareSlider({
       <img
         src={afterImage}
         alt={afterLabel}
-        className="absolute inset-0 w-full h-full object-contain bg-muted"
+        className="absolute inset-0 w-full h-full object-cover bg-muted"
         draggable={false}
       />
 
@@ -105,12 +105,14 @@ export function ImageCompareSlider({
         <img
           src={beforeImage}
           alt={beforeLabel}
-          className="absolute inset-0 w-full h-full object-contain bg-muted"
+          className="h-full object-cover bg-muted"
           style={{
             width: containerRef.current
               ? `${containerRef.current.offsetWidth}px`
-              : "100%",
-            maxWidth: "none",
+              : "100vw",
+            minWidth: containerRef.current
+              ? `${containerRef.current.offsetWidth}px`
+              : "100vw",
           }}
           draggable={false}
         />

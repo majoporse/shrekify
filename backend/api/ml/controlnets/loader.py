@@ -31,6 +31,13 @@ DEFAULT_CONTROLNET_MODELS: dict[str, str] = {
     "openpose": "lllyasviel/control_v11p_sd15_openpose",
 }
 
+CONTROLNET_DESCRIPTIONS: dict[str, str] = {
+    "canny": "Canny Edge Detection",
+    "softedge": "Soft Edge Detection (HED)",
+    "lineart": "Line Art Extraction",
+    "depth": "Depth Map Estimation",
+    "openpose": "Pose Detection (OpenPose)",
+}
 
 def get_controlnet_models() -> dict[str, str]:
     model_config = load_model_config()
@@ -75,6 +82,7 @@ def try_load_controlnets(dtype: torch.dtype) -> list[ControlNetModel]:
             controlnet = ControlNetModel.from_pretrained(model_id, torch_dtype=dtype)
             loaded_controlnets.append(controlnet)
             logger.info("ControlNet '%s' loaded successfully.", cn_type)
+            logger.debug("ControlNet '%s' details: %s", cn_type, controlnet)
         except Exception as cn_exc:
             logger.warning("ControlNet '%s' load failed: %s", cn_type, cn_exc)
 
@@ -84,15 +92,6 @@ def try_load_controlnets(dtype: torch.dtype) -> list[ControlNetModel]:
 
 def get_controlnets() -> list[ControlNetModel]:
     return _CONTROLNETS
-
-
-CONTROLNET_DESCRIPTIONS: dict[str, str] = {
-    "canny": "Canny Edge Detection",
-    "softedge": "Soft Edge Detection (HED)",
-    "lineart": "Line Art Extraction",
-    "depth": "Depth Map Estimation",
-    "openpose": "Pose Detection (OpenPose)",
-}
 
 
 def process_control_images(
