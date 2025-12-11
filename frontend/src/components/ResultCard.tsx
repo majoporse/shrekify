@@ -9,19 +9,27 @@ import { Button } from "@/components/ui/button";
 import { ImageCompareSlider } from "@/components/ui/image-compare-slider";
 import { Sparkles, ImageIcon, Download, CheckCircle2 } from "lucide-react";
 
+interface ImageResult {
+  image_base64: string;
+  description: string;
+}
+
 interface ResultCardProps {
   preview: string | null;
-  result: string | null;
+  images: ImageResult[] | null;
   usedFallback: boolean | null;
   onDownload: () => void;
 }
 
 export function ResultCard({
   preview,
-  result,
+  images,
   usedFallback,
   onDownload,
 }: ResultCardProps) {
+  const mainImage = images?.[0] ?? null;
+  const controlImages = images?.slice(1) ?? [];
+
   return (
     <Card className="shadow-lg border-emerald-100 dark:border-emerald-900">
       <CardHeader>
@@ -34,12 +42,12 @@ export function ResultCard({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {result && preview ? (
+        {mainImage && preview ? (
           <div className="space-y-4">
             {/* Before/After Slider */}
             <ImageCompareSlider
               beforeImage={preview}
-              afterImage={`data:image/png;base64,${result}`}
+              afterImage={`data:image/jpeg;base64,${mainImage.image_base64}`}
               beforeLabel="Original"
               afterLabel="Shrekified"
               className="border"
@@ -47,6 +55,29 @@ export function ResultCard({
             <p className="text-xs text-center text-muted-foreground">
               Drag the slider to compare
             </p>
+
+            {/* Control Images Grid */}
+            {controlImages.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-muted-foreground">
+                  Control Images
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {controlImages.map((img, idx) => (
+                    <div key={idx} className="space-y-1">
+                      <img
+                        src={`data:image/jpeg;base64,${img.image_base64}`}
+                        alt={img.description}
+                        className="w-full rounded-lg border"
+                      />
+                      <p className="text-xs text-center text-muted-foreground">
+                        {img.description}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Status badge */}
             {usedFallback !== null && (

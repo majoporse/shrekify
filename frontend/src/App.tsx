@@ -54,10 +54,11 @@ function App() {
   };
 
   const downloadResult = () => {
-    if (shrekifyMutation.data?.image_base64) {
+    const mainImage = shrekifyMutation.data?.images?.[0];
+    if (mainImage) {
       const link = document.createElement("a");
-      link.href = `data:image/png;base64,${shrekifyMutation.data.image_base64}`;
-      link.download = "shrekified.png";
+      link.href = `data:image/jpeg;base64,${mainImage.image_base64}`;
+      link.download = "shrekified.jpg";
       link.click();
     }
   };
@@ -84,7 +85,7 @@ function App() {
 
             <ResultCard
               preview={preview}
-              result={shrekifyMutation.data?.image_base64 ?? null}
+              images={shrekifyMutation.data?.images ?? null}
               usedFallback={shrekifyMutation.data?.used_fallback ?? null}
               onDownload={downloadResult}
             />

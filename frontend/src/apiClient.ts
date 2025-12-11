@@ -1,5 +1,10 @@
-export interface ShrekifyResponse {
+export interface ImageResult {
     image_base64: string;
+    description: string;
+}
+
+export interface ShrekifyResponse {
+    images: ImageResult[];
     used_fallback: boolean;
 }
 
@@ -30,7 +35,7 @@ export async function shrekifyImage(
     if (!response.ok) {
         const detail =
             typeof payload === "object" && payload !== null && "detail" in payload
-                ? 
+                ?
                 payload.detail
                 : response.statusText;
         throw new Error(typeof detail === "string" ? detail : "Request failed");

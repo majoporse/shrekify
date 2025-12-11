@@ -1,6 +1,6 @@
 """ML module for Shrekify image generation."""
 
-from .ml_sd15 import generate_shrek_image, try_generate_shrek_image, try_gennerate_shrek_image
+from .ml_sd15 import GenerationResult, generate_shrek_image, try_generate_shrek_image
 from .pipeline import load_pipeline, get_pipeline, PipelineType
 from .config import load_model_config, load_prompts_config, load_generation_config
 from .image_utils import load_style_image, fallback_effect
@@ -16,9 +16,9 @@ from .controlnets import (
 )
 
 __all__ = [
+    "GenerationResult",
     "generate_shrek_image",
     "try_generate_shrek_image",
-    "try_gennerate_shrek_image",
     "load_pipeline",
     "get_pipeline",
     "PipelineType",

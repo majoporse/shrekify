@@ -13,10 +13,13 @@ from api.ml.ml_sd15 import try_generate_shrek_image
 
 logger = logging.getLogger(__name__)
 
-def image_to_base64(image: Image.Image) -> str:
+
+def image_to_base64(image: Image.Image, quality: int = 85) -> str:
     buffer = BytesIO()
-    image.save(buffer, format="PNG")
+    rgb_image = image.convert("RGB")
+    rgb_image.save(buffer, format="JPEG", quality=quality, optimize=True)
     return base64.b64encode(buffer.getvalue()).decode("utf-8")
+
 
 class ShrekifyView(APIView):
     parser_classes = (MultiPartParser, FormParser)
@@ -33,14 +36,25 @@ class ShrekifyView(APIView):
 
         try:
             pil_image = Image.open(upload).convert("RGB")
-            output, used_fallback = try_generate_shrek_image(
-                pil_image
-            )
-            encoded = image_to_base64(output)
+            result = try_generate_shrek_image(pil_image)
+            
+            images = [
+                {
+                    "image_base64": image_to_base64(result.image),
+                    "description": "Generated Shrek Image",
+                }
+            ]
+            
+            for control_image, description in result.control_images:
+                images.append({
+                    "image_base64": image_to_base64(control_image),
+                    "description": description,
+                })
+            
             return Response(
                 {
-                    "image_base64": encoded,
-                    "used_fallback": used_fallback,
+                    "images": images,
+                    "used_fallback": result.used_fallback,
                 },
                 status=status.HTTP_200_OK,
             )

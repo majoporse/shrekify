@@ -86,10 +86,19 @@ def get_controlnets() -> list[ControlNetModel]:
     return _CONTROLNETS
 
 
+CONTROLNET_DESCRIPTIONS: dict[str, str] = {
+    "canny": "Canny Edge Detection",
+    "softedge": "Soft Edge Detection (HED)",
+    "lineart": "Line Art Extraction",
+    "depth": "Depth Map Estimation",
+    "openpose": "Pose Detection (OpenPose)",
+}
+
+
 def process_control_images(
     image: Image.Image,
     controlnet_types: list[str],
-) -> list[Image.Image]:
+) -> list[tuple[Image.Image, str]]:
     control_images = []
 
     for cn_type in controlnet_types:
@@ -100,7 +109,8 @@ def process_control_images(
 
         try:
             control_image = preprocessor(image)
-            control_images.append(control_image)
+            description = CONTROLNET_DESCRIPTIONS.get(cn_type, cn_type)
+            control_images.append((control_image, description))
             logger.debug("Processed control image for '%s'", cn_type)
         except Exception as e:
             logger.warning("Failed to process control image for '%s': %s", cn_type, e)

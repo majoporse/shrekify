@@ -1,21 +1,26 @@
 """Stable Diffusion v1.5 image generation for Shrekify."""
 
 import logging
-from typing import Tuple
+from dataclasses import dataclass
 
 from PIL import Image
 
 from .config import load_generation_config, load_model_config, load_prompts_config
 from .controlnets import get_controlnets, process_control_images
 from .image_utils import fallback_effect, load_style_image
-from .pipeline import PipelineType, load_pipeline
+from .pipeline import load_pipeline
 
 logger = logging.getLogger(__name__)
 
 
-def generate_shrek_image(
-    input_image: Image.Image,
-) -> Tuple[Image.Image, bool]:
+@dataclass
+class GenerationResult:
+    image: Image.Image
+    used_fallback: bool
+    control_images: list[tuple[Image.Image, str]]
+
+
+def generate_shrek_image(input_image: Image.Image) -> GenerationResult:
 
     prompts_config = load_prompts_config()
     gen_config = load_generation_config()
@@ -64,13 +69,15 @@ def generate_shrek_image(
     # Handle multi-ControlNet
     controlnets = get_controlnets()
     controlnet_config = model_config.get("controlnet", {})
+    control_images_with_desc: list[tuple[Image.Image, str]] = []
 
     if controlnets and controlnet_config.get("enabled", False):
         controlnet_types = controlnet_config.get("types", [])
         
-        control_images = process_control_images(face_image, controlnet_types)
+        control_images_with_desc = process_control_images(face_image, controlnet_types)
         
-        if control_images:
+        if control_images_with_desc:
+            control_images = [img for img, _ in control_images_with_desc]
             controlnet_scales = gen_config.get("controlnet_conditioning_scale", 0.8)
             
             if isinstance(controlnet_scales, (int, float)):
@@ -87,15 +94,21 @@ def generate_shrek_image(
     result = pipeline(**gen_kwargs).images[0]
 
     logger.info("Generation complete with Stable Diffusion v1.5.")
-    return result, False
+    return GenerationResult(
+        image=result,
+        used_fallback=False,
+        control_images=control_images_with_desc,
+    )
 
 
-def try_generate_shrek_image(
-    input_image: Image.Image,
-) -> Tuple[Image.Image, bool]:
+def try_generate_shrek_image(input_image: Image.Image) -> GenerationResult:
     try:
         return generate_shrek_image(input_image)
     except Exception as gen_exc:
         logger.exception("Image generation failed; using fallback effect. Reason: %s", gen_exc)
         fallback_result = fallback_effect(input_image)
-        return fallback_result, True
+        return GenerationResult(
+            image=fallback_result,
+            used_fallback=True,
+            control_images=[],
+        )
