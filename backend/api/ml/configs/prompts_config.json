@@ -1,5 +1,0 @@
-{
-    "default_prompt": "<shrek> in a swamp, bald, no hair, Dreamworks style, funnel ears, cartoon, friendly",
-    "default_negative_prompt": "hair, ears, text, error, blurry, deformed, ugly, disfigured, low quality, jpeg artifacts, ugly, duplicate, morbid, mutilated, mutated, extra limbs, poorly drawn, blurry, dehydrated, bad proportions, cloned face, disfigured, gross proportions, malformed limbs, missing arms, missing legs, extra arms, extra legs, fused fingers, too many fingers, long neck",
-    "style_image_path": "./Ogre_Swamp.webp"
-}

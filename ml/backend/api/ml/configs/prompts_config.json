@@ -1,0 +1,5 @@
+{
+    "default_prompt": "<shrek> portrait, waist up, Dreamworks animation, bald head, big green ogre, wearing a brown vest and white long sleeve shirt, friendly expression, short tubular ears, wide nose, no horns, ",
+    "default_negative_prompt": "human ears, human, blurry, deformed, disfigured, distorted, low quality, ugly, tiling, poorly drawn, mutation, mutated, extra limbs, cloned face, disfigured, gross proportions, malformed limbs, missing arms, missing legs, fused fingers, too many fingers, horns ",
+    "style_image_path": "./Ogre_Swamp.webp"
+}
