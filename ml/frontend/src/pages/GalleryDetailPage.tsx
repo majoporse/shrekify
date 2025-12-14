@@ -1,11 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
 import { useParams, Link } from "react-router-dom";
 import { Loader2, ArrowLeft, Download } from "lucide-react";
-import { getGalleryEntry, resolveImageUrl } from "@/apiClient";
+import { resolveImageUrl } from "@/apiClient"; 
 import { PageLayout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ImageCompareSlider } from "@/components/ui/image-compare-slider";
+import { useGalleryEntry } from "@/hooks/useShrekify";
 
 export default function GalleryDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -14,16 +14,12 @@ export default function GalleryDetailPage() {
     data: entry,
     isLoading,
     error,
-  } = useQuery({
-    queryKey: ["gallery", id],
-    queryFn: () => getGalleryEntry(id!),
-    enabled: !!id,
-  });
+  } = useGalleryEntry(id!); 
 
   const downloadImage = () => {
     if (entry) {
       const link = document.createElement("a");
-      link.href = resolveImageUrl(entry.generated_image);
+      link.href = resolveImageUrl(entry.generated_image_path);
       link.download = "glowup-transformation.jpg";
       link.target = "_blank";
       link.click();
@@ -76,8 +72,8 @@ export default function GalleryDetailPage() {
               <CardContent>
                 <div className="rounded-xl overflow-hidden border border-emerald-200">
                   <ImageCompareSlider
-                    beforeImage={resolveImageUrl(entry.original_image)}
-                    afterImage={resolveImageUrl(entry.generated_image)}
+                    beforeImage={resolveImageUrl(entry.input_image_path)}
+                    afterImage={resolveImageUrl(entry.generated_image_path)}
                     beforeLabel="Before"
                     afterLabel="Glowed Up ✨"
                   />
@@ -102,13 +98,13 @@ export default function GalleryDetailPage() {
                       <div key={img.id} className="space-y-2">
                         <div className="aspect-4/3 rounded-lg overflow-hidden bg-muted">
                           <img
-                            src={resolveImageUrl(img.image)}
-                            alt={img.description}
+                            src={resolveImageUrl(img.image_path)}
+                            alt={"Control image " + img.order}
                             className="w-full h-full object-cover"
                           />
                         </div>
                         <p className="text-xs text-center text-muted-foreground">
-                          {img.description}
+                          {"Order: " + img.order}
                         </p>
                       </div>
                     ))}

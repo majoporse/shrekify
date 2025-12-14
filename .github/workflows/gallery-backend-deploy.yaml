@@ -1,0 +1,31 @@
+name: Copy Django Project to EC2 (Manual Run)
+
+on:
+  workflow_dispatch: # Allows manual trigger from the GitHub UI Actions tab
+
+jobs:
+  copy_files:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Copy Project Files via SCP
+        uses: appleboy/scp-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22 # Standard SSH port
+
+          # Files and folders from your local repository to copy
+          source: "./"
+
+          # The target directory on the EC2 instance where the project lives
+          target: "/home/${{ secrets.EC2_USER }}/gallery-backend"
+
+          # Important: Use --delete if you want to remove files on the server
+          # that no longer exist locally (for cleanup). Remove this if unsure.
+          # Arguments are passed directly to the rsync command used by the action.
+          args: "-rltgoD --delete"

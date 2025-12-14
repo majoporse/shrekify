@@ -27,10 +27,17 @@ export function useShrekify() {
 export function useUploadToGallery() {
     const queryClient = useQueryClient();
 
-    return useMutation<GenerationLogDetail, Error, GenerationLogCreate>({
+    return useMutation<
+        GenerationLogDetail,
+        Error,
+        {
+            input_image_base64?: string;
+            generated_image_base64: string;
+            control_images_base64?: string[];
+        }
+    >({
         mutationFn: uploadToGalleryService,
         onSuccess: () => {
-            // Invalidate and refetch gallery list
             queryClient.invalidateQueries({ queryKey: ["gallery-list"] });
         },
     });

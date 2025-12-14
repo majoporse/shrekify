@@ -68,7 +68,7 @@ export function ResultCard({
             {/* Before/After Slider */}
             <ImageCompareSlider
               beforeImage={preview}
-              afterImage={getMinioUrl(mainImage.path)}
+              afterImage={mainImage.src || mainImage.path}
               beforeLabel="Before"
               afterLabel="Glowed Up ✨"
               className="border border-emerald-200 rounded-xl"
@@ -87,7 +87,7 @@ export function ResultCard({
                   {controlImages.map((img, idx) => (
                     <div key={idx} className="shrink-0 w-64 space-y-1">
                       <img
-                        src={getMinioUrl(img.path)}
+                        src={img.src || img.path}
                         alt={`Control image ${idx}`}
                         className="w-full aspect-4/3 object-cover rounded-lg border"
                       />

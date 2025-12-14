@@ -1,9 +1,13 @@
-export interface ImagePath {
-    path: string;
+
+
+// ML backend returns images as base64 strings with optional description
+export interface MLImage {
+    image_base64: string;
+    description?: string;
 }
 
 export interface ShrekifyResponse {
-    images: ImagePath[];
+    images: MLImage[];
     used_fallback: boolean;
 }
 
@@ -53,9 +57,6 @@ export function getMinioUrl(path: string): string {
     return `${MINIO_URL}/${path.startsWith("/") ? path.slice(1) : path}`;
 }
 
-/**
- * Resolve a relative image URL to an absolute URL
- */
 export function resolveImageUrl(url: string): string {
     if (!url) return "";
     if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("data:")) {
@@ -98,11 +99,12 @@ export async function shrekifyImage(
     return payload as ShrekifyResponse;
 }
 
-/**
- * Upload generation result to gallery service
- */
 export async function uploadToGalleryService(
-    data: GenerationLogCreate
+    data: {
+        input_image_base64?: string;
+        generated_image_base64: string;
+        control_images_base64?: string[];
+    }
 ): Promise<GenerationLogDetail> {
     const response = await fetch(`${GALLERY_API_URL}/generation-logs/`, {
         method: "POST",
@@ -120,9 +122,6 @@ export async function uploadToGalleryService(
     return response.json();
 }
 
-/**
- * Get paginated list of generation logs from gallery service
- */
 export async function getGalleryList(
     page?: number,
     pageSize?: number
@@ -141,9 +140,6 @@ export async function getGalleryList(
     return response.json();
 }
 
-/**
- * Get generation log detail from gallery service
- */
 export async function getGalleryEntry(id: string): Promise<GenerationLogDetail> {
     const response = await fetch(`${GALLERY_API_URL}/generation-logs/${id}/`);
 
@@ -154,9 +150,6 @@ export async function getGalleryEntry(id: string): Promise<GenerationLogDetail> 
     return response.json();
 }
 
-/**
- * Convert a base64 string to a data URL
- */
 export function base64ToDataUrl(base64: string, mimeType: string = "image/jpeg"): string {
     return `data:${mimeType};base64,${base64}`;
 }

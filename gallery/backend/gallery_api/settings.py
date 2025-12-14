@@ -36,12 +36,13 @@ INSTALLED_APPS = [
     "drf_spectacular",
     # Local apps
     "storage",
+    "storages"
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -122,6 +123,7 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 # In production: points to real AWS S3
 DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 
+
 # S3 Configuration
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID", "minioadmin")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY", "minioadmin")
@@ -130,9 +132,6 @@ AWS_S3_ENDPOINT_URL = os.getenv("AWS_S3_ENDPOINT_URL", "http://localhost:9000")
 AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME", "us-east-1")
 AWS_S3_CUSTOM_DOMAIN = os.getenv("AWS_S3_CUSTOM_DOMAIN", None)
 AWS_S3_USE_SSL = os.getenv("AWS_S3_USE_SSL", "False").lower() == "true"
-AWS_S3_SIGNATURE_VERSION = "s3v4"
-AWS_DEFAULT_ACL = "public-read"
-AWS_QUERYSTRING_AUTH = False
 
 # Media files URL
 if AWS_S3_CUSTOM_DOMAIN:
@@ -144,8 +143,11 @@ else:
     # Standard AWS S3
     MEDIA_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com/"
 
+
 # CORS settings
 CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:3000").split(",")
+# For development, allow all origins if explicitly set
+CORS_ALLOW_ALL_ORIGINS = True
 
 # Django REST Framework
 REST_FRAMEWORK = {
@@ -168,6 +170,7 @@ LOGGING = {
     "disable_existing_loggers": False,
     "formatters": {
         "simple": {"format": "[%(levelname)s] %(name)s: %(message)s"},
+        "verbose": {"format": "[%(levelname)s] %(asctime)s %(name)s %(message)s"},
     },
     "handlers": {
         "console": {
@@ -178,5 +181,9 @@ LOGGING = {
     "root": {"handlers": ["console"], "level": "INFO"},
     "loggers": {
         "storage": {"handlers": ["console"], "level": "INFO", "propagate": False},
+        "gallery.storage": {"handlers": ["console"], "level": "INFO", "propagate": False},
+        "boto3": {"handlers": ["console"], "level": "DEBUG", "propagate": False},
+        "botocore": {"handlers": ["console"], "level": "DEBUG", "propagate": False},
+        "urllib3": {"handlers": ["console"], "level": "DEBUG", "propagate": False},
     },
 }

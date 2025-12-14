@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import GenerationLog, ControlImage
+from ..application.service import GenerationLogService
 
 
 class ControlImageSerializer(serializers.ModelSerializer):
@@ -45,25 +46,18 @@ class GenerationLogSerializer(serializers.ModelSerializer):
 
 
 class GenerationLogCreateSerializer(serializers.Serializer):
-    """Serializer for creating GenerationLog with control image paths."""
-    
-    input_image_path = serializers.CharField(required=False, allow_blank=True)
-    generated_image_path = serializers.CharField(required=False, allow_blank=True)
-    control_image_paths = serializers.ListField(child=serializers.CharField(), required=False)
-    
+    """Serializer for creating GenerationLog with base64 images."""
+    input_image_base64 = serializers.CharField(required=False, allow_blank=True)
+    generated_image_base64 = serializers.CharField(required=True)
+    control_images_base64 = serializers.ListField(child=serializers.CharField(), required=False)
+
     def create(self, validated_data):
-        """Create GenerationLog and associated control images."""
-        control_image_paths = validated_data.pop('control_image_paths', [])
+        input_image_base64 = validated_data.get('input_image_base64', "")
+        generated_image_base64 = validated_data.get('generated_image_base64')
+        control_images_base64 = validated_data.get('control_images_base64', [])
         
-        # Create the log
-        log = GenerationLog.objects.create(**validated_data)
-        
-        # Create control images
-        for order, image_path in enumerate(control_image_paths):
-            ControlImage.objects.create(
-                generation_log=log,
-                image_path=image_path,
-                order=order
-            )
-        
-        return log
+        return GenerationLogService.create_generation_log(
+            input_image_base64=input_image_base64,
+            generated_image_base64=generated_image_base64,
+            control_images_base64=control_images_base64
+        )

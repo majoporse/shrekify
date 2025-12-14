@@ -1,20 +1,25 @@
 import { useParams, Link } from "react-router-dom";
 import { Loader2, ArrowLeft, Download } from "lucide-react";
-import { useGenerationLog } from "@/hooks/useShrekify";
-import { getMinioUrl } from "@/apiClient";
+import { resolveImageUrl } from "@/apiClient"; 
 import { PageLayout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ImageCompareSlider } from "@/components/ui/image-compare-slider";
+import { useGalleryEntry } from "@/hooks/useShrekify";
 
 export default function GalleryDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { data: entry, isLoading, error } = useGenerationLog(id!);
+
+  const {
+    data: entry,
+    isLoading,
+    error,
+  } = useGalleryEntry(id!); 
 
   const downloadImage = () => {
-    if (entry && entry.generated_image_path) {
+    if (entry) {
       const link = document.createElement("a");
-      link.href = getMinioUrl(entry.generated_image_path);
+      link.href = resolveImageUrl(entry.generated_image_path);
       link.download = "glowup-transformation.jpg";
       link.target = "_blank";
       link.click();
@@ -67,8 +72,8 @@ export default function GalleryDetailPage() {
               <CardContent>
                 <div className="rounded-xl overflow-hidden border border-emerald-200">
                   <ImageCompareSlider
-                    beforeImage={getMinioUrl(entry.input_image_path)}
-                    afterImage={getMinioUrl(entry.generated_image_path)}
+                    beforeImage={resolveImageUrl(entry.input_image_path)}
+                    afterImage={resolveImageUrl(entry.generated_image_path)}
                     beforeLabel="Before"
                     afterLabel="Glowed Up ✨"
                   />
@@ -93,13 +98,13 @@ export default function GalleryDetailPage() {
                       <div key={img.id} className="space-y-2">
                         <div className="aspect-4/3 rounded-lg overflow-hidden bg-muted">
                           <img
-                            src={getMinioUrl(img.image_path)}
-                            alt={`Control image ${img.order}`}
+                            src={resolveImageUrl(img.image_path)}
+                            alt={"Control image " + img.order}
                             className="w-full h-full object-cover"
                           />
                         </div>
                         <p className="text-xs text-center text-muted-foreground">
-                          Order: {img.order}
+                          {"Order: " + img.order}
                         </p>
                       </div>
                     ))}

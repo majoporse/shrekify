@@ -19,6 +19,14 @@ export default function EnhancePage() {
     selectedFile: File | null,
     filePreview?: string
   ) => {
+    console.log("[Frontend Upload] File selected:", {
+      fileName: selectedFile?.name,
+      fileSize: selectedFile?.size,
+      fileType: selectedFile?.type,
+      hasPreview: !!filePreview,
+      previewLength: filePreview?.length,
+    });
+
     setFile(selectedFile);
     setPreview(filePreview ?? null);
     shrekifyMutation.reset();
@@ -40,19 +48,45 @@ export default function EnhancePage() {
       return;
     }
 
-    setValidationError(null);
-    shrekifyMutation.mutate({
-      file,
-      prompt: undefined,
-      negativePrompt: undefined,
+    console.log("[Frontend Upload] Starting image enhancement upload:", {
+      fileName: file.name,
+      fileSize: file.size,
+      fileType: file.type,
+      timestamp: new Date().toISOString(),
     });
+
+    setValidationError(null);
+    shrekifyMutation.mutate(
+      {
+        file,
+        prompt: undefined,
+        negativePrompt: undefined,
+      },
+      {
+        onSuccess: (data) => {
+          console.log("[Frontend Upload] Enhancement completed successfully:", {
+            imagesCount: data.images?.length,
+            usedFallback: data.used_fallback,
+            timestamp: new Date().toISOString(),
+          });
+        },
+        onError: (error) => {
+          console.error("[Frontend Upload] Enhancement failed:", {
+            error: error?.message || error,
+            timestamp: new Date().toISOString(),
+          });
+        },
+      }
+    );
   };
 
   const downloadResult = () => {
     const mainImage = shrekifyMutation.data?.images?.[0];
     if (mainImage) {
+      // Create a data URL from base64
+      const dataUrl = `data:image/jpeg;base64,${mainImage.image_base64}`;
       const link = document.createElement("a");
-      link.href = getMinioUrl(mainImage.path);
+      link.href = dataUrl;
       link.download = "glowup-transformation.jpg";
       link.target = "_blank";
       link.click();
@@ -66,13 +100,47 @@ export default function EnhancePage() {
       return;
     }
 
-    // Assume input image path is available from ML service
-    // This would typically come from the ML service response
-    uploadToGalleryMutation.mutate({
-      input_image_path: preview ? "" : "", // Placeholder, depends on ML service
-      generated_image_path: result.images[0].path,
-      control_image_paths: [],
+    console.log("[Frontend Upload] Starting gallery upload:", {
+      hasInputImage: !!preview,
+      inputImageLength: preview?.length,
+      generatedImageBase64Length: result.images[0].image_base64?.length,
+      controlImagesCount: result.images.slice(1).length,
+      controlImagesBase64Lengths: result.images
+        .slice(1)
+        .map((img) => img.image_base64?.length),
+      timestamp: new Date().toISOString(),
     });
+
+    // Prepare base64 payload for gallery backend
+    uploadToGalleryMutation.mutate(
+      {
+        input_image_base64: preview || "",
+        generated_image_base64: result.images[0].image_base64
+          ? `data:image/jpeg;base64,${result.images[0].image_base64}`
+          : "",
+        control_images_base64: result.images
+          .slice(1)
+          .map((img) =>
+            img.image_base64 ? `data:image/jpeg;base64,${img.image_base64}` : ""
+          ),
+      },
+      {
+        onError: (error: any) => {
+          console.error("[Frontend Upload] Gallery upload failed:", {
+            error: error?.message || error,
+            timestamp: new Date().toISOString(),
+          });
+
+          if (error instanceof Error) {
+            setValidationError(error.message);
+          } else if (typeof error === "string") {
+            setValidationError(error);
+          } else {
+            setValidationError("Failed to upload to gallery");
+          }
+        },
+      }
+    );
   };
 
   const error =
@@ -80,6 +148,19 @@ export default function EnhancePage() {
     shrekifyMutation.error?.message ||
     uploadToGalleryMutation.error?.message ||
     null;
+
+  // Prepare images for ResultCard: convert base64 to data URLs
+  const resultImages = shrekifyMutation.data?.images
+    ? shrekifyMutation.data.images.map((img) => ({
+        ...img,
+        src: img.image_base64
+          ? `data:image/jpeg;base64,${img.image_base64}`
+          : undefined,
+      }))
+    : null;
+
+  // Always use the original preview (input image) for the before image
+  const previewUrl = preview;
 
   return (
     <PageLayout>
@@ -97,14 +178,14 @@ export default function EnhancePage() {
 
         <div className="space-y-4">
           <ResultCard
-            preview={preview}
-            images={shrekifyMutation.data?.images ?? null}
+            preview={previewUrl}
+            images={resultImages}
             usedFallback={shrekifyMutation.data?.used_fallback ?? null}
             onDownload={downloadResult}
             isLoading={shrekifyMutation.isPending}
           />
 
-          {shrekifyMutation.data && shrekifyMutation.data.images.length > 0 && (
+          {resultImages && resultImages.length > 0 && (
             <Button
               onClick={saveToGallery}
               disabled={uploadToGalleryMutation.isPending}
@@ -132,6 +213,17 @@ export default function EnhancePage() {
               </p>
             </div>
           )}
+
+          {uploadToGalleryMutation.isSuccess &&
+            (() => {
+              console.log(
+                "[Frontend Upload] Gallery upload completed successfully:",
+                {
+                  timestamp: new Date().toISOString(),
+                }
+              );
+              return null;
+            })()}
         </div>
       </div>
     </PageLayout>

@@ -42,38 +42,34 @@ const filterSteps = [
 export function BeautyFilterLoading({ preview }: BeautyFilterLoadingProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+  
+  const totalSteps = filterSteps.length;
 
   useEffect(() => {
-    let stepIndex = 0;
-    let isMounted = true;
+    if (currentStep >= totalSteps) {
+      return;
+    }
 
-    const runStep = () => {
-      if (stepIndex < filterSteps.length && isMounted) {
-        setCurrentStep(stepIndex);
+    const stepDuration = filterSteps[currentStep].duration;
 
-        setTimeout(() => {
-          if (isMounted) {
-            setCompletedSteps((prev) => [...prev, stepIndex]);
-            stepIndex++;
-            runStep();
-          }
-        }, filterSteps[stepIndex].duration);
-      }
-    };
-
-    runStep();
+    const timerId = setTimeout(() => {
+      setCompletedSteps(prev => [...prev, currentStep]);
+      setCurrentStep(prev => prev + 1);
+    }, stepDuration);
 
     return () => {
-      isMounted = false;
+      clearTimeout(timerId);
     };
-  }, []);
+    
+  }, [currentStep, totalSteps]);
 
-  const currentFilter =
-    filterSteps[Math.min(currentStep, filterSteps.length - 1)]?.filter || "";
-
+  const filterIndex = Math.min(currentStep, totalSteps - 1);
+  const currentFilter = filterSteps[filterIndex]?.filter || "";
+  
+  const displayStep = Math.min(currentStep, totalSteps - 1);
+  
   return (
     <div className="space-y-4">
-      {/* Image with progressive filter */}
       <div className="relative aspect-4/3 rounded-xl overflow-hidden border-2 border-emerald-200 animate-pulse-glow">
         <img
           src={preview}
@@ -82,37 +78,35 @@ export function BeautyFilterLoading({ preview }: BeautyFilterLoadingProps) {
           style={{ filter: currentFilter }}
         />
 
-        {/* Shimmer overlay */}
         <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/30 to-transparent animate-shimmer" />
 
-        {/* Sparkle effects */}
         <div className="absolute inset-0 pointer-events-none">
           <Sparkles className="absolute top-4 right-4 w-6 h-6 text-white/80 animate-pulse" />
           <Sparkles className="absolute bottom-8 left-6 w-4 h-4 text-white/60 animate-pulse delay-300" />
           <Sparkles className="absolute top-1/3 left-1/4 w-5 h-5 text-white/70 animate-pulse delay-500" />
         </div>
 
-        {/* Progress badge */}
         <div className="absolute bottom-3 left-3 right-3 bg-black/60 backdrop-blur-sm rounded-lg px-3 py-2">
           <div className="flex items-center gap-2 text-white text-sm">
-            <Sparkles className="w-4 h-4 animate-spin" />
+            {currentStep < totalSteps && (
+                <Sparkles className="w-4 h-4 animate-spin" />
+            )}
             <span className="font-medium">
-              {filterSteps[currentStep]?.name || "Processing..."}
+              {filterSteps[displayStep]?.name || "Processing Complete!"}
             </span>
           </div>
         </div>
       </div>
 
-      {/* Step progress */}
       <div className="space-y-2">
         {filterSteps.map((step, idx) => (
           <div
             key={idx}
             className={cn(
               "flex items-center gap-3 text-sm transition-all duration-300",
-              completedSteps.includes(idx)
+              completedSteps.includes(idx) 
                 ? "text-emerald-600"
-                : currentStep === idx
+                : currentStep === idx 
                 ? "text-emerald-700 font-medium"
                 : "text-muted-foreground/50"
             )}
@@ -129,7 +123,7 @@ export function BeautyFilterLoading({ preview }: BeautyFilterLoadingProps) {
             >
               {completedSteps.includes(idx) ? (
                 <Check className="w-3 h-3" />
-              ) : currentStep === idx ? (
+              ) : currentStep === idx && currentStep < totalSteps ? (
                 <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
               ) : null}
             </div>

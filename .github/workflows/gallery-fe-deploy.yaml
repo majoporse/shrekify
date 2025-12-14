@@ -1,0 +1,42 @@
+name: React App S3 Deployment
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production # Optional: Used for better visibility/protection on GitHub
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20' # Use a recent stable Node.js version
+
+    - name: Install dependencies and Build app
+      run: |
+        npm install
+        npm run build 
+      # The 'npm run build' command creates the 'build/' folder
+      env:
+        # Pass the variables directly to the shell environment for the build step
+        VITE_ML_API_URL: ${{ secrets.VITE_ML_API_URL }}
+        VITE_GALLERY_API_URL: ${{ secrets.VITE_GALLERY_API_URL }}
+        VITE_MINIO_URL: ${{ secrets.VITE_MINIO_URL }}
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+    - name: Deploy static site to S3
+      # This step uses the AWS CLI to perform the S3 sync
+      run: aws s3 sync ./build s3://${{ secrets.AWS_S3_BUCKET }} --delete --acl public-read
+      # '--delete' removes files in S3 that are no longer in your 'build/' folder.
+      # '--acl public-read' makes sure the uploaded files are publicly accessible.

@@ -7,6 +7,7 @@ from ..domain.serializers import (
     GenerationLogListSerializer,
     GenerationLogCreateSerializer
 )
+from ..infrastructure.repository import GenerationLogRepository
 
 
 class ImagePagination(PageNumberPagination):
@@ -32,8 +33,11 @@ class GenerationLogViewSet(viewsets.ReadOnlyModelViewSet):
     - Retrieve: GET /api/generation-logs/{id}/ (with control images joined)
     """
     
-    queryset = GenerationLog.objects.all()
     pagination_class = ImagePagination
+    
+    def get_queryset(self):
+        """Get queryset from repository."""
+        return GenerationLogRepository.get_all()
     
     def get_serializer_class(self):
         """Use appropriate serializer based on action."""
@@ -73,13 +77,13 @@ class GenerationLogViewSet(viewsets.ReadOnlyModelViewSet):
     
     def retrieve(self, request, pk=None, *args, **kwargs):
         """Retrieve a single generation log with all control images joined."""
-        try:
-            log = GenerationLog.objects.prefetch_related('control_images').get(id=pk)
-            serializer = GenerationLogSerializer(log)
-            return Response(serializer.data)
-        except GenerationLog.DoesNotExist:
+        log = GenerationLogRepository.get_by_id(pk)
+        if not log:
             return Response(
                 {'error': 'Generation log not found'},
                 status=status.HTTP_404_NOT_FOUND
             )
+        
+        serializer = GenerationLogSerializer(log)
+        return Response(serializer.data)
 

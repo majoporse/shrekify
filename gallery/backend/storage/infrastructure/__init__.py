@@ -1,4 +1,4 @@
 """Infrastructure Layer - Data Access and Repository."""
-from .repository import ImageRepository
+from .repository import GenerationLogRepository
 
-__all__ = ['ImageRepository']
+__all__ = ['GenerationLogRepository']

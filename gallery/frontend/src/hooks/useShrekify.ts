@@ -1,37 +1,59 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-    getGenerationLogs,
-    getGenerationLog,
-    createGenerationLog,
-    type GenerationLogList,
+    shrekifyImage,
+    uploadToGalleryService,
+    getGalleryList,
+    getGalleryEntry,
+    type ShrekifyResponse,
     type GenerationLogDetail,
     type GenerationLogCreate,
     type PaginatedResponse,
+    type GenerationLogList,
 } from "@/apiClient";
 
-export function useGenerationLogs(page?: number, pageSize?: number) {
-    return useQuery<PaginatedResponse<GenerationLogList>, Error>({
-        queryKey: ["generation-logs", page, pageSize],
-        queryFn: () => getGenerationLogs(page, pageSize),
+interface ShrekifyInput {
+    file: File;
+    prompt?: string;
+    negativePrompt?: string;
+}
+
+export function useShrekify() {
+    return useMutation<ShrekifyResponse, Error, ShrekifyInput>({
+        mutationFn: ({ file, prompt, negativePrompt }) =>
+            shrekifyImage(file, prompt, negativePrompt),
     });
 }
 
-export function useGenerationLog(id: string) {
-    return useQuery<GenerationLogDetail, Error>({
-        queryKey: ["generation-log", id],
-        queryFn: () => getGenerationLog(id),
-        enabled: !!id,
-    });
-}
-
-export function useCreateGenerationLog() {
+export function useUploadToGallery() {
     const queryClient = useQueryClient();
 
-    return useMutation<GenerationLogDetail, Error, GenerationLogCreate>({
-        mutationFn: createGenerationLog,
+    return useMutation<
+        GenerationLogDetail,
+        Error,
+        {
+            input_image_base64?: string;
+            generated_image_base64: string;
+            control_images_base64?: string[];
+        }
+    >({
+        mutationFn: uploadToGalleryService,
         onSuccess: () => {
-            // Invalidate and refetch generation logs list
-            queryClient.invalidateQueries({ queryKey: ["generation-logs"] });
+            queryClient.invalidateQueries({ queryKey: ["gallery-list"] });
         },
+    });
+}
+
+export function useGalleryList(page?: number, pageSize?: number) {
+    return useQuery<PaginatedResponse<GenerationLogList>, Error>({
+        queryKey: ["gallery-list", page, pageSize],
+        queryFn: () => getGalleryList(page, pageSize),
+    });
+}
+
+export function useGalleryEntry(id: string) {
+    return useQuery<GenerationLogDetail, Error>({
+        queryKey: ["gallery-entry", id],
+        queryFn: () => getGalleryEntry(id),
+        enabled: !!id,
     });
 }

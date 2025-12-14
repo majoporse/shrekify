@@ -1,19 +1,37 @@
-import { useQuery } from "@tanstack/react-query";
+import { QueryFunctionContext, useInfiniteQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { Loader2, ImageOff } from "lucide-react";
-import { getGalleryList, resolveImageUrl } from "@/apiClient";
+import {
+  GenerationLogList,
+  getGalleryList,
+  PaginatedResponse,
+  resolveImageUrl,
+} from "@/apiClient";
 import { PageLayout } from "@/components/Layout";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
 
 export default function GalleryPage() {
+  const PAGE_SIZE = 12;
+
   const {
-    data: entries,
+    data,
     isLoading,
     error,
-  } = useQuery({
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery<PaginatedResponse<GenerationLogList>>({
     queryKey: ["gallery"],
-    queryFn: getGalleryList,
+    queryFn: ({ pageParam = 0 }: { pageParam?: any }) =>
+      getGalleryList(pageParam, PAGE_SIZE),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, pages) => {
+      return lastPage.next ? pages.length + 1 : undefined;
+    },
   });
+
+  const entries = data?.pages?.flatMap((p) => p.results) ?? null;
 
   return (
     <PageLayout>
@@ -54,36 +72,54 @@ export default function GalleryPage() {
         )}
 
         {entries && entries.length > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {entries.map((entry) => (
-              <Link key={entry.id} to={`/transformations/${entry.id}`}>
-                <Card className="overflow-hidden hover:ring-2 hover:ring-emerald-400 hover:shadow-lg hover:shadow-emerald-500/20 transition-all cursor-pointer border-emerald-100">
-                  <div className="aspect-[4/3] relative">
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {entries.map((entry) => (
+                <Link
+                  key={entry.id}
+                  to={`/transformations/${entry.id}`}
+                  className="group relative block aspect-4/3 rounded-lg overflow-hidden transition-all duration-300 transform 
+                              hover:shadow-2xl hover:shadow-emerald-500/50"
+                >
+                  {/* Image Container: Fills the entire link/card area */}
+                  <div className="w-full h-full relative">
                     <img
-                      src={resolveImageUrl(entry.generated_image)}
-                      alt="Glow up transformation"
-                      className="w-full h-full object-cover"
+                      src={resolveImageUrl(entry.generated_image_path)}
+                      alt={"Glow up transformation"}
+                      className="w-full h-full object-cover absolute inset-0 transition-transform duration-300 group-hover:scale-[1.05]"
                     />
                   </div>
-                  <CardContent className="py-2 px-3">
-                    {entry.title && (
-                      <p className="text-sm font-medium text-emerald-700 truncate">
-                        {entry.title}
-                      </p>
-                    )}
-                    <p className="text-xs text-muted-foreground">
+
+                  {/* Gradient Overlay & Date Display: Appears on hover */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-100 transition-opacity duration-300 p-4 flex items-end justify-between text-white">
+                    {/* Date */}
+                    <p className="text-sm font-semibold">
                       {new Date(entry.created_at).toLocaleDateString()}
                     </p>
-                    {entry.control_images_count > 0 && (
-                      <p className="text-xs text-emerald-600">
-                        +{entry.control_images_count} control images
-                      </p>
-                    )}
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+
+            <div className="flex justify-center mt-6">
+              <button
+                className="px-4 py-2 rounded bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-50"
+                onClick={() => fetchNextPage()}
+                disabled={!hasNextPage || isFetchingNextPage}
+              >
+                {isFetchingNextPage ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin inline-block mr-2" />
+                    Loading...
+                  </>
+                ) : hasNextPage ? (
+                  "Load more"
+                ) : (
+                  "No more"
+                )}
+              </button>
+            </div>
+          </>
         )}
       </div>
     </PageLayout>

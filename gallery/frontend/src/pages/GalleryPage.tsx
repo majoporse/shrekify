@@ -1,15 +1,39 @@
-import { useState } from "react";
+import { QueryFunctionContext, useInfiniteQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { Loader2, ImageOff, ChevronLeft, ChevronRight } from "lucide-react";
-import { useGenerationLogs } from "@/hooks/useShrekify";
-import { getMinioUrl } from "@/apiClient";
+import { Loader2, ImageOff } from "lucide-react";
+import {
+  GenerationLogList,
+  getGalleryList,
+  PaginatedResponse,
+  resolveImageUrl,
+} from "@/apiClient";
 import { PageLayout } from "@/components/Layout";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
 
 export default function GalleryPage() {
-  const [page, setPage] = useState(1);
-  const { data, isLoading, error } = useGenerationLogs(page, 20);
+  const PAGE_SIZE = 12;
+
+  const {
+    data,
+    isLoading,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery<PaginatedResponse<GenerationLogList>>({
+    queryKey: ["gallery"],
+    queryFn: ({ pageParam = 0 }: { pageParam?: any }) =>
+      getGalleryList(pageParam, PAGE_SIZE),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, pages) => {
+      return lastPage.next ? pages.length + 1 : undefined;
+    },
+  });
+
+  console.log("Gallery data:", data);
+  console.log("isLoading:", isLoading, "error:", error);
+  const entries = data?.pages?.flatMap((p) => p.results) ?? null;
 
   return (
     <PageLayout>
@@ -37,7 +61,7 @@ export default function GalleryPage() {
           </Card>
         )}
 
-        {data && data.results.length === 0 && (
+        {entries && entries.length === 0 && (
           <Card className="border-emerald-200">
             <CardContent className="py-12 text-center text-muted-foreground">
               <ImageOff className="w-12 h-12 mx-auto mb-4 opacity-50 text-emerald-400" />
@@ -49,52 +73,53 @@ export default function GalleryPage() {
           </Card>
         )}
 
-        {data && data.results.length > 0 && (
+        {entries && entries.length > 0 && (
           <>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {data.results.map((entry) => (
-                <Link key={entry.id} to={`/transformations/${entry.id}`}>
-                  <Card className="overflow-hidden hover:ring-2 hover:ring-emerald-400 hover:shadow-lg hover:shadow-emerald-500/20 transition-all cursor-pointer border-emerald-100">
-                    <div className="aspect-[4/3] relative">
-                      {entry.generated_image_path && (
-                        <img
-                          src={getMinioUrl(entry.generated_image_path)}
-                          alt="Glow up transformation"
-                          className="w-full h-full object-cover"
-                        />
-                      )}
-                    </div>
-                    <CardContent className="py-2 px-3">
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(entry.created_at).toLocaleDateString()}
-                      </p>
-                    </CardContent>
-                  </Card>
+              {entries.map((entry) => (
+                <Link
+                  key={entry.id}
+                  to={`/transformations/${entry.id}`}
+                  className="group relative block aspect-4/3 rounded-lg overflow-hidden transition-all duration-300 transform 
+                              hover:shadow-2xl hover:shadow-emerald-500/50"
+                >
+                  {/* Image Container: Fills the entire link/card area */}
+                  <div className="w-full h-full relative">
+                    <img
+                      src={resolveImageUrl(entry.generated_image_path)}
+                      alt={"Glow up transformation"}
+                      className="w-full h-full object-cover absolute inset-0 transition-transform duration-300 group-hover:scale-[1.05]"
+                    />
+                  </div>
+
+                  {/* Gradient Overlay & Date Display: Appears on hover */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-100 transition-opacity duration-300 p-4 flex items-end justify-between text-white">
+                    {/* Date */}
+                    <p className="text-sm font-semibold">
+                      {new Date(entry.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
                 </Link>
               ))}
             </div>
 
-            {/* Pagination */}
-            <div className="flex items-center justify-center gap-4 mt-6">
-              <Button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={!data.previous}
-                variant="outline"
-                className="border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+            <div className="flex justify-center mt-6">
+              <button
+                className="px-4 py-2 rounded bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-50"
+                onClick={() => fetchNextPage()}
+                disabled={!hasNextPage || isFetchingNextPage}
               >
-                <ChevronLeft className="h-4 w-4" />
-                Previous
-              </Button>
-              <span className="text-sm text-gray-600">Page {page}</span>
-              <Button
-                onClick={() => setPage((p) => p + 1)}
-                disabled={!data.next}
-                variant="outline"
-                className="border-emerald-300 text-emerald-700 hover:bg-emerald-50"
-              >
-                Next
-                <ChevronRight className="h-4 w-4" />
-              </Button>
+                {isFetchingNextPage ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin inline-block mr-2" />
+                    Loading...
+                  </>
+                ) : hasNextPage ? (
+                  "Load more"
+                ) : (
+                  "No more"
+                )}
+              </button>
             </div>
           </>
         )}
