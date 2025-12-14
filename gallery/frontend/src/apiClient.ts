@@ -131,6 +131,7 @@ export async function getGalleryList(
     if (pageSize) params.set("page_size", pageSize.toString());
 
     const url = `${GALLERY_API_URL}/generation-logs/${params.toString() ? `?${params}` : ""}`;
+    console.log("Fetching gallery list from URL:", url);
     const response = await fetch(url);
     console.log(response)
 
