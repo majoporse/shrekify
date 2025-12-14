@@ -19,6 +19,7 @@ jobs:
 
     - name: Install dependencies and Build app
       run: |
+        cd gallery/frontend
         npm install
         npm run build 
       # The 'npm run build' command creates the 'build/' folder
@@ -37,6 +38,6 @@ jobs:
 
     - name: Deploy static site to S3
       # This step uses the AWS CLI to perform the S3 sync
-      run: aws s3 sync ./build s3://${{ secrets.AWS_S3_BUCKET }} --delete --acl public-read
+      run: aws s3 sync ./gallery/frontend/build s3://${{ secrets.AWS_S3_BUCKET }} --delete --acl public-read
       # '--delete' removes files in S3 that are no longer in your 'build/' folder.
       # '--acl public-read' makes sure the uploaded files are publicly accessible.

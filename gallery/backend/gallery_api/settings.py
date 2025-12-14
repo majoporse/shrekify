@@ -144,8 +144,6 @@ else:
     MEDIA_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com/"
 
 
-# CORS settings
-CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:3000").split(",")
 # For development, allow all origins if explicitly set
 CORS_ALLOW_ALL_ORIGINS = True
 
