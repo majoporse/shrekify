@@ -14,6 +14,10 @@ import { CardContent } from "@/components/ui/card";
 export default function GalleryPage() {
   const PAGE_SIZE = 12;
 
+  // log the gallery backend to cli
+  console.log("Gallery API URL:", import.meta.env.VITE_GALLERY_API_URL);
+  console.log("MinIO URL:", import.meta.env.VITE_MINIO_URL);
+
   const {
     data,
     isLoading,
